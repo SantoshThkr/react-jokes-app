@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+enum EventType {
+  ORDER_CREATED
+  ORDER_COMPLETED
+  USER_LOGIN
+  PAYMENT_COMPLETED
+  SYSTEM_WARNING
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceName {
+  API
+  DATABASE
+  PAYMENTS
+  NOTIFICATIONS
+}
+
+enum ServiceState {
+  ONLINE
+  DEGRADED
+  OFFLINE
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(254)
+  passwordHash String   @map("password_hash")
+  role         Role     @default(VIEWER)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  events        Event[]
+  statusUpdates SystemStatus[]
+
+  @@map("users")
+}
+
+model Event {
+  id        String    @id @default(uuid()) @db.Uuid
+  type      EventType
+  message   String    @db.VarChar(500)
+  userId    String?   @map("user_id") @db.Uuid
+  metadata  Json?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Feed / events page: newest first, optionally filtered by type.
+  @@index([createdAt(sort: Desc)])
+  @@index([type, createdAt(sort: Desc)])
+  @@map("events")
+}
+
+model Order {
+  // Sequential integer ids give human-friendly order numbers (#1042).
+  id           Int         @id @default(autoincrement())
+  customerName String      @map("customer_name") @db.VarChar(120)
+  amount       Decimal     @db.Decimal(12, 2)
+  status       OrderStatus @default(PENDING)
+  completedAt  DateTime?   @map("completed_at") @db.Timestamptz(3)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  // Orders table: newest first, optionally filtered by status.
+  // Dashboard summary: orders created / revenue completed today.
+  @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([completedAt])
+  @@map("orders")
+}
+
+model SystemStatus {
+  service     ServiceName  @id
+  status      ServiceState @default(ONLINE)
+  updatedById String?      @map("updated_by_id") @db.Uuid
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_status")
+}
