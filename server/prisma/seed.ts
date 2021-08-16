@@ -3,14 +3,23 @@
  *
  *   npm run db:seed
  */
-import type { OrderStatus} from '@prisma/client';
-import { EventType, Prisma, PrismaClient } from '@prisma/client';
+import type { OrderStatus } from '@prisma/client';
+import { EventType, Prisma, PrismaClient, Role } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 if (process.env.NODE_ENV === 'production') {
   throw new Error('Refusing to seed a production database.');
 }
 
 const prisma = new PrismaClient();
+
+// Development-only credentials, documented in the README. Override with SEED_USER_PASSWORD.
+const seedPassword = process.env.SEED_USER_PASSWORD ?? 'Password123!';
+
+const devUsers = [
+  { name: 'Ada Admin', email: 'admin@example.com', role: Role.ADMIN },
+  { name: 'Victor Viewer', email: 'viewer@example.com', role: Role.VIEWER },
+];
 
 const customers = [
   'Acme Corp',
@@ -28,6 +37,17 @@ const customers = [
 const statuses: OrderStatus[] = ['PENDING', 'PROCESSING', 'COMPLETED', 'COMPLETED', 'CANCELLED'];
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000);
+
+async function seedUsers() {
+  const passwordHash = await bcrypt.hash(seedPassword, 10);
+  for (const user of devUsers) {
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: { name: user.name, role: user.role, passwordHash },
+      create: { ...user, passwordHash },
+    });
+  }
+}
 
 async function seedOrdersAndEvents() {
   // Seed data is disposable: start from a clean slate every time.
@@ -97,9 +117,14 @@ async function seedOrdersAndEvents() {
 }
 
 async function main() {
+  await seedUsers();
   await seedOrdersAndEvents();
-  const [orders, events] = await Promise.all([prisma.order.count(), prisma.event.count()]);
-  process.stdout.write(`Seeded ${orders} orders and ${events} events.\n`);
+  const [users, orders, events] = await Promise.all([
+    prisma.user.count(),
+    prisma.order.count(),
+    prisma.event.count(),
+  ]);
+  process.stdout.write(`Seeded ${users} users, ${orders} orders and ${events} events.\n`);
 }
 
 main()

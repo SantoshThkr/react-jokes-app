@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { config } from '../config/env';
 
-export const prisma = new PrismaClient({
-  log: config.isProduction ? ['error'] : ['warn', 'error'],
-});
+// Query errors are thrown to the caller and logged once by the error handler,
+// so Prisma itself only needs to report warnings.
+export const prisma = new PrismaClient({ log: ['warn'] });

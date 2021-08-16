@@ -5,9 +5,10 @@ import { pinoHttp } from 'pino-http';
 import { config } from './config/env';
 import { logger } from './config/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import { apiRoutes } from './routes';
+import type { ApiRouteOptions } from './routes';
+import { createApiRoutes } from './routes';
 
-export function createApp() {
+export function createApp(options: ApiRouteOptions = {}) {
   const app = express();
 
   app.set('trust proxy', 1);
@@ -34,7 +35,7 @@ export function createApp() {
     }),
   );
 
-  app.use('/api', apiRoutes);
+  app.use('/api', createApiRoutes(options));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

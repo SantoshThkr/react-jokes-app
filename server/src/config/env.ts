@@ -17,6 +17,19 @@ const envSchema = z.object({
         .filter(Boolean),
     ),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  DATABASE_URL: z
+    .string({ required_error: 'DATABASE_URL is required' })
+    .regex(/^postgres(ql)?:\/\//, 'DATABASE_URL must be a postgresql:// connection string'),
+  JWT_SECRET: z
+    .string({ required_error: 'JWT_SECRET is required' })
+    .min(32, 'JWT_SECRET must be at least 32 characters long'),
+  JWT_EXPIRES_IN: z
+    .string()
+    .regex(/^\d+[smhd]$/, 'JWT_EXPIRES_IN must look like 15m, 8h or 1d')
+    .default('8h'),
+  BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+  AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().positive().default(15),
 });
 
 function loadConfig() {
@@ -39,6 +52,16 @@ function loadConfig() {
     port: env.PORT,
     clientUrls: env.CLIENT_URL,
     logLevel: env.LOG_LEVEL,
+    databaseUrl: env.DATABASE_URL,
+    jwt: {
+      secret: env.JWT_SECRET,
+      expiresIn: env.JWT_EXPIRES_IN as `${number}${'s' | 'm' | 'h' | 'd'}`,
+    },
+    bcryptRounds: env.BCRYPT_ROUNDS,
+    authRateLimit: {
+      max: env.AUTH_RATE_LIMIT_MAX,
+      windowMs: env.AUTH_RATE_LIMIT_WINDOW_MINUTES * 60_000,
+    },
   } as const;
 }
 

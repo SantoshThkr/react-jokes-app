@@ -1,6 +1,16 @@
 import { Router } from 'express';
+import { createAuthRoutes } from './authRoutes';
 import { healthRoutes } from './healthRoutes';
 
-export const apiRoutes = Router();
+export interface ApiRouteOptions {
+  authRateLimitMax?: number;
+}
 
-apiRoutes.use('/health', healthRoutes);
+export function createApiRoutes(options: ApiRouteOptions = {}) {
+  const router = Router();
+
+  router.use('/health', healthRoutes);
+  router.use('/auth', createAuthRoutes({ rateLimitMax: options.authRateLimitMax }));
+
+  return router;
+}
