@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createAuthRoutes } from './authRoutes';
+import { dashboardRoutes } from './dashboardRoutes';
 import { healthRoutes } from './healthRoutes';
 import { usersRoutes } from './usersRoutes';
 
@@ -13,6 +14,7 @@ export function createApiRoutes(options: ApiRouteOptions = {}) {
   router.use('/health', healthRoutes);
   router.use('/auth', createAuthRoutes({ rateLimitMax: options.authRateLimitMax }));
   router.use('/users', usersRoutes);
+  router.use('/dashboard', dashboardRoutes);
 
   return router;
 }
