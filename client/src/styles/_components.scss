@@ -1,0 +1,197 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: $radius;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: $color-primary;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: $color-primary-dark;
+    }
+  }
+
+  &--secondary {
+    background: $color-surface;
+    color: $color-text;
+    border-color: $color-border;
+
+    &:hover:not(:disabled) {
+      background: $color-bg;
+    }
+  }
+
+  &--block {
+    width: 100%;
+  }
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+  background: $color-surface;
+  min-height: 2.375rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+.form-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-text-muted;
+}
+
+.form-error {
+  margin: 0 0 1rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: $radius;
+  background: color.adjust($color-danger, $lightness: 50%);
+  color: color.adjust($color-danger, $lightness: -10%);
+  font-size: 0.875rem;
+}
+
+.panel {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  padding: 1.25rem;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  padding: 1.5rem;
+  text-align: center;
+  color: $color-text-muted;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+
+  &__spinner {
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid $color-border;
+    border-top-color: $color-primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+.error-state {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+
+  p {
+    color: $color-danger;
+    margin-top: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+
+  &__dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &--success {
+    color: $color-success;
+  }
+  &--warning {
+    color: $color-warning;
+  }
+  &--danger {
+    color: $color-danger;
+  }
+  &--neutral {
+    color: $color-text-muted;
+  }
+}
+
+.role-tag {
+  display: inline-block;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  border: 1px solid $color-border;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: #eef1f5;
+  color: $color-text-muted;
+
+  &--order-created {
+    background: #ddf4ff;
+    color: #0550ae;
+  }
+  &--order-completed,
+  &--payment-completed {
+    background: #dafbe1;
+    color: #116329;
+  }
+  &--user-login {
+    background: #f1e7ff;
+    color: #6e40c9;
+  }
+  &--system-warning {
+    background: #fff8c5;
+    color: #7d4e00;
+  }
+}

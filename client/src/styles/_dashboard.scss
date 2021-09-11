@@ -1,0 +1,107 @@
+@use 'variables' as *;
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.summary-card {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  padding: 1rem 1.25rem;
+
+  dd {
+    margin: 0;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $color-text-muted;
+  }
+
+  &__value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__hint {
+    font-size: 0.75rem;
+    color: $color-text-muted;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: minmax(280px, 1fr) 2fr;
+    align-items: start;
+  }
+}
+
+.status-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  &__name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  &__select {
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+.activity-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__item {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    time {
+      color: $color-text-muted;
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__message {
+    overflow-wrap: anywhere;
+  }
+}
