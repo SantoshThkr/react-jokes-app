@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { config } from '../config/env';
 import { logger } from '../config/logger';
 import { prisma } from '../db/prisma';
+import { publish } from '../sockets/realtime';
 import type { PublicUser } from '../types/user';
 import { conflict, unauthorized } from '../utils/httpError';
 import type { LoginInput, RegisterInput } from '../validators/authValidators';
@@ -54,11 +55,12 @@ export async function login(input: LoginInput): Promise<AuthResult> {
     throw unauthorized(INVALID_CREDENTIALS);
   }
 
-  await recordEvent({
+  const loginEvent = await recordEvent({
     type: 'USER_LOGIN',
     message: `${user.name} signed in`,
     userId: user.id,
   });
+  publish('activity.created', loginEvent);
   logger.info({ userId: user.id }, 'User signed in');
 
   const { passwordHash: _passwordHash, ...publicUser } = user;

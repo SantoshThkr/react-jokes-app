@@ -1,5 +1,6 @@
 import type { EventType, Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma';
+import { publish, publishSummary } from '../sockets/realtime';
 import type { EventDto } from '../types/event';
 import type { Page } from '../utils/pagination';
 import { buildPage, toSkipTake } from '../utils/pagination';
@@ -48,6 +49,11 @@ export async function listEvents(query: ListEventsQuery): Promise<Page<EventDto>
   return buildPage(events, total, query);
 }
 
-export function createEvent(input: CreateEventInput, actorId: string): Promise<EventDto> {
-  return recordEvent({ ...input, userId: actorId });
+export async function createEvent(input: CreateEventInput, actorId: string): Promise<EventDto> {
+  const event = await recordEvent({ ...input, userId: actorId });
+  publish('activity.created', event);
+  if (event.type === 'SYSTEM_WARNING') {
+    void publishSummary();
+  }
+  return event;
 }

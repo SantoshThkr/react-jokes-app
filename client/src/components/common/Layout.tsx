@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { ConnectionStatus } from './ConnectionStatus';
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -33,6 +34,7 @@ export function Layout() {
             </ul>
           </nav>
           <div className="app-header__session">
+            <ConnectionStatus />
             {user && (
               <span className="app-header__user">
                 {user.name} <span className="role-tag">{user.role.toLowerCase()}</span>

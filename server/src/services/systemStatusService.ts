@@ -2,6 +2,7 @@ import type { Prisma, ServiceName, ServiceState } from '@prisma/client';
 import { ServiceName as ServiceNames } from '@prisma/client';
 import { logger } from '../config/logger';
 import { prisma } from '../db/prisma';
+import { publish, publishSummary } from '../sockets/realtime';
 import type { EventDto } from '../types/event';
 import type { SystemStatusDto } from '../types/systemStatus';
 import { recordEvent } from './eventService';
@@ -39,7 +40,7 @@ export async function updateSystemStatus(
   status: ServiceState,
   actorId: string,
 ): Promise<StatusUpdateResult> {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx): Promise<StatusUpdateResult> => {
     const previous = await tx.systemStatus.findUnique({ where: { service } });
     if (previous?.status === status) {
       const unchanged = await tx.systemStatus.findUniqueOrThrow({
@@ -76,4 +77,13 @@ export async function updateSystemStatus(
     );
     return { status: updated, event, changed: true };
   });
+
+  if (result.changed) {
+    publish('system.status.changed', result.status);
+    if (result.event) {
+      publish('activity.created', result.event);
+      void publishSummary();
+    }
+  }
+  return result;
 }

@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/common/Layout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
@@ -17,7 +18,9 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <Layout />
+                <SocketProvider>
+                  <Layout />
+                </SocketProvider>
               </ProtectedRoute>
             }
           >

@@ -1,5 +1,6 @@
 import type { Order, OrderStatus, Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma';
+import { publish, publishSummary } from '../sockets/realtime';
 import type { OrderDto } from '../types/order';
 import { conflict, notFound } from '../utils/httpError';
 import type { Page } from '../utils/pagination';
@@ -22,6 +23,7 @@ export function toOrderDto(order: Order): OrderDto {
     customerName: order.customerName,
     amount: order.amount.toNumber(),
     status: order.status,
+    nextStatuses: ALLOWED_TRANSITIONS[order.status],
     completedAt: order.completedAt,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
@@ -64,7 +66,7 @@ export async function getOrder(id: number): Promise<OrderDto> {
 }
 
 export async function createOrder(input: CreateOrderInput, actorId: string) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const order = await tx.order.create({ data: input });
     const event = await recordEvent(
       {
@@ -77,6 +79,12 @@ export async function createOrder(input: CreateOrderInput, actorId: string) {
     );
     return { order: toOrderDto(order), events: [event] };
   });
+
+  // Broadcast only after the transaction has committed.
+  publish('order.created', result.order);
+  result.events.forEach((event) => publish('activity.created', event));
+  void publishSummary();
+  return result;
 }
 
 function eventsForStatusChange(order: Order, actorId: string): RecordEventInput[] {
@@ -98,7 +106,7 @@ function eventsForStatusChange(order: Order, actorId: string): RecordEventInput[
 }
 
 export async function updateOrderStatus(id: number, status: OrderStatus, actorId: string) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const current = await tx.order.findUnique({ where: { id } });
     if (!current) {
       throw notFound(`Order #${id} not found`);
@@ -127,4 +135,11 @@ export async function updateOrderStatus(id: number, status: OrderStatus, actorId
     }
     return { order: toOrderDto(order), events, changed: true };
   });
+
+  if (result.changed) {
+    publish('order.updated', result.order);
+    result.events.forEach((event) => publish('activity.created', event));
+    void publishSummary();
+  }
+  return result;
 }

@@ -6,6 +6,8 @@ export interface Order {
   customerName: string;
   amount: number;
   status: OrderStatus;
+  /** Valid next statuses, decided by the server. */
+  nextStatuses: OrderStatus[];
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;

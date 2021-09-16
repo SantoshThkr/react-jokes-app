@@ -3,12 +3,14 @@ import { createApp } from './app';
 import { config } from './config/env';
 import { logger } from './config/logger';
 import { prisma } from './db/prisma';
+import { createSocketServer } from './sockets';
 
 async function start() {
   await prisma.$connect();
 
   const app = createApp();
   const server = http.createServer(app);
+  const io = createSocketServer(server);
 
   server.listen(config.port, () => {
     logger.info({ port: config.port, env: config.nodeEnv }, 'API server listening');
@@ -16,7 +18,8 @@ async function start() {
 
   const shutdown = (signal: string) => {
     logger.info({ signal }, 'Shutting down');
-    server.close(() => {
+    // Closing Socket.IO also closes the underlying HTTP server.
+    void io.close(() => {
       prisma.$disconnect().finally(() => process.exit(0));
     });
     // Do not hang forever on keep-alive connections.

@@ -80,3 +80,51 @@
     margin: 0;
   }
 }
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &--live {
+    color: $color-success;
+
+    .connection-status__dot {
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &--connecting,
+  &--reconnecting {
+    color: $color-warning;
+  }
+
+  &--offline {
+    color: $color-danger;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}

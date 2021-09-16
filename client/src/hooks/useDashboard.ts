@@ -3,8 +3,9 @@ import { getErrorMessage } from '../api/client';
 import { fetchSummary, fetchSystemStatus } from '../api/dashboardApi';
 import { fetchEvents } from '../api/eventsApi';
 import { ACTIVITY_LIMIT, dashboardReducer, initialDashboardState } from '../utils/dashboardState';
+import { useResyncOnConnect, useSocketEvent } from './useSocket';
 
-/** Initial dashboard state comes from REST; live updates are dispatched on top of it. */
+/** Initial dashboard state comes from REST; Socket.IO pushes live updates on top of it. */
 export function useDashboard() {
   const [state, dispatch] = useReducer(dashboardReducer, initialDashboardState);
   const latestRequest = useRef(0);
@@ -29,6 +30,16 @@ export function useDashboard() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Events sent while we were disconnected are lost; refresh the snapshot.
+  useResyncOnConnect(load);
+
+  useSocketEvent('activity.created', (event) => dispatch({ type: 'activity/received', event }));
+  useSocketEvent('summary.updated', (summary) => dispatch({ type: 'summary/updated', summary }));
+  useSocketEvent('presence.updated', ({ activeUsers }) =>
+    dispatch({ type: 'presence/updated', activeUsers }),
+  );
+  useSocketEvent('system.status.changed', (status) => dispatch({ type: 'status/changed', status }));
 
   return { state, dispatch, reload: load };
 }
