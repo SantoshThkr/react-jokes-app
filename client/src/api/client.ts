@@ -41,8 +41,9 @@ apiClient.interceptors.response.use(undefined, (error: unknown) => {
 export function getErrorMessage(error: unknown, fallback = 'Something went wrong. Please try again.') {
   if (error instanceof AxiosError) {
     const body = error.response?.data as Partial<ApiErrorBody> | undefined;
-    if (body?.error?.message) {
-      return body.error.message;
+    if (body?.error) {
+      // Validation errors: the first field-level message is the most useful.
+      return body.error.details?.[0]?.message ?? body.error.message;
     }
     if (!error.response) {
       return 'Unable to reach the server. Check your connection and try again.';

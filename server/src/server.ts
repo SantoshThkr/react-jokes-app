@@ -30,6 +30,10 @@ async function start() {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
+process.on('unhandledRejection', (reason) => {
+  logger.error({ err: reason }, 'Unhandled promise rejection');
+});
+
 start().catch((err: unknown) => {
   logger.fatal({ err }, 'Failed to start server');
   process.exit(1);
