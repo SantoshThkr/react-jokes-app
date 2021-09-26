@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // In development the API runs on :4000. Proxying keeps the browser on a single
 // origin, so REST calls and the Socket.IO connection behave like production.
@@ -13,5 +13,10 @@ export default defineConfig({
       '/api': { target: apiTarget, changeOrigin: true },
       '/socket.io': { target: apiTarget, ws: true, changeOrigin: true },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    restoreMocks: true,
   },
 });
